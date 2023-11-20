@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Intrinsics.Arm;
 
 namespace rt
 {
@@ -46,17 +47,19 @@ namespace rt
             Line line = new Line(point, light.Position);
             foreach (var geometry in geometries)
             {
-                Ellipsoid ellipsoid2 = (Ellipsoid)geometry;
-                if ((ellipsoid2.Center - ellipsoid.Center).Length() < 0.001) // skip the sphere the point is on
-                {
-                    continue;
-                }
-            
-                // other spheres:
-                Intersection intersection = ellipsoid2.GetIntersection(line, 0, 1000);
-                if (intersection.T > 0)
-                {
-                    return false;
+                if(!(geometry is RawCtMask)){
+                    Ellipsoid ellipsoid2 = (Ellipsoid)geometry;
+                    if ((ellipsoid2.Center - ellipsoid.Center).Length() < 0.001) // skip the sphere the point is on
+                    {
+                        continue;
+                    }
+                
+                    // other spheres:
+                    Intersection intersection = ellipsoid2.GetIntersection(line, 0, 1000);
+                    if (intersection.T > 0)
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -95,33 +98,51 @@ namespace rt
 
                     if (intersection.Valid)
                     {
-                        // Ellipsoid ellipsoid = (Ellipsoid)intersection.Geometry;\
                         Geometry geometry = intersection.Geometry;
-
-                        var color = new Color();
-                        foreach (var light in lights)
-                        {
-                            var V = intersection.Position;
-                            var N = intersection.Normal;
-                            var L = light.Position;
-                            var T = (L - V).Normalize();
-                            var R = (N * (N * T) * 2 - T).Normalize();
-                            var E = (camera.Position - V).Normalize();
-
-                            /*if (IsLit(V, light, ellipsoid))
-                            {*/
-                                color += geometry.Material.Ambient * light.Ambient +
-                                         geometry.Material.Diffuse * light.Diffuse * Relu(N * T) +
-                                         geometry.Material.Specular * light.Specular *
-                                         Math.Pow(Relu(E * R), geometry.Material.Shininess);
-                            /*}
-                            else
+                        if(geometry is RawCtMask){
+                            var color = new Color();
+                            foreach (var light in lights)
                             {
-                                color += ellipsoid.Material.Ambient * light.Ambient;
-                            }*/
-                        }
+                                var V = intersection.Position;
+                                var N = intersection.Normal;
+                                var L = light.Position;
+                                var T = (L - V).Normalize();
+                                var R = (N * (N * T) * 2 - T).Normalize();
+                                var E = (camera.Position - V).Normalize();
 
-                        image.SetPixel(i, j, color);
+                                color += intersection.Material.Ambient * light.Ambient +
+                                         intersection.Material.Diffuse * light.Diffuse * Relu(N * T) +
+                                         intersection.Material.Specular * light.Specular *
+                                         Math.Pow(Relu(E * R), intersection.Material.Shininess);
+                            }
+                            image.SetPixel(i,j,color);
+                        }
+                        else{
+                            var color = new Color();
+                            foreach (var light in lights)
+                            {
+                                var V = intersection.Position;
+                                var N = intersection.Normal;
+                                var L = light.Position;
+                                var T = (L - V).Normalize();
+                                var R = (N * (N * T) * 2 - T).Normalize();
+                                var E = (camera.Position - V).Normalize();
+
+                                if (IsLit(V, light, (Ellipsoid)geometry))
+                                {
+                                    color += geometry.Material.Ambient * light.Ambient +
+                                             geometry.Material.Diffuse * light.Diffuse * Relu(N * T) +
+                                             geometry.Material.Specular * light.Specular *
+                                             Math.Pow(Relu(E * R), geometry.Material.Shininess);
+                                }
+                                else
+                                {
+                                    color += geometry.Material.Ambient * light.Ambient;
+                                }
+                            }
+
+                            image.SetPixel(i, j, color);
+                        }
                     }
                     else
                     {

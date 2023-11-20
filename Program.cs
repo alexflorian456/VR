@@ -42,7 +42,7 @@ namespace rt
                 
                 new Sphere(   new Vector(-25.0, -50.0,  75.0),                           25.0, Color.ORANGE),
                 
-                new RawCtMask("../../walnut.dat", "../../walnut.raw", new Vector(-5.0, -20.0, 105.0), 0.2,
+                new RawCtMask("../../../walnut.dat", "../../../walnut.raw", new Vector(-5.0, -20.0, 105.0), 0.2,
                     new ColorMap()
                         .Add(1, 1, new Color(0.7, 0.0, 0.0, 0.05))
                         .Add(2, 2, new Color(0.0, 0.7, 0.0, 1.0))

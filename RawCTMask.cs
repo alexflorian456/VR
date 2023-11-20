@@ -194,35 +194,42 @@ public class RawCtMask : Geometry
         Vector t2Pos = line.CoordinateToPosition(t2);
         int nSamples = 100;
         double sampleStep = (t2Pos - t1Pos).Length() / nSamples;
-        double sampleT = t1;
-        Vector samplePosition = t1Pos;
-        Color color = GetColor(samplePosition);
-        //color = new Color(color.Red * color.Alpha, color.Green * color.Alpha, color.Blue * color.Alpha, color.Alpha);
-        double alpha = color.Alpha;
-        double firstT = 0;
-        if (alpha > 0.0001)
-        {
-            firstT = t1;
-        }
         
-        while (alpha < 0.0001 && nSamples > 0)
-        {
-            sampleT += sampleStep;
-            samplePosition = line.CoordinateToPosition(sampleT);
-            Color new_color = GetColor(samplePosition);
-            if (new_color.Alpha > 0.0001 && firstT == 0)
-            {
-                firstT = sampleT;
-            }
-            alpha += new_color.Alpha;
-            nSamples--;
+        double firstT = t1;
+        double lastT = t2;
+
+        while(GetColor(line.CoordinateToPosition(firstT)).Alpha < 0.00001 && firstT < lastT){
+            firstT += sampleStep;
         }
 
-        if (alpha < 0.0001)
-        {
+        while(GetColor(line.CoordinateToPosition(lastT)).Alpha < 0.00001 && lastT > firstT){
+            lastT -= sampleStep;
+        }
+
+        Color sampleColor = GetColor(line.CoordinateToPosition(lastT));
+        double sampleAlpha = sampleColor.Alpha;
+        Color currentColor = new Color(sampleColor.Red * sampleAlpha,
+                                        sampleColor.Green * sampleAlpha,
+                                        sampleColor.Blue * sampleAlpha,
+                                        sampleAlpha);
+
+        for(double sampleT = lastT; sampleT > firstT; sampleT -= sampleStep){
+            sampleColor = GetColor(line.CoordinateToPosition(sampleT));
+            sampleAlpha = sampleColor.Alpha;
+
+            currentColor *= 1 - sampleAlpha;
+            currentColor += new Color(sampleColor.Red * sampleAlpha,
+                                        sampleColor.Green * sampleAlpha,
+                                        sampleColor.Blue * sampleAlpha,
+                                        sampleAlpha);
+
+            currentColor.Alpha = currentColor.Alpha-1<0.00001?currentColor.Alpha:1;
+        }
+
+        if(currentColor.Alpha < 0.00001){
             return Intersection.NONE;
         }
-
+        
         return new Intersection(
             true,
             true,
@@ -230,8 +237,8 @@ public class RawCtMask : Geometry
             line,
             firstT,
             GetNormal(line.CoordinateToPosition(firstT)),
-            Material.FromColor(GetColor(line.CoordinateToPosition(firstT))),
-            GetColor(line.CoordinateToPosition(firstT))
+            Material.FromColor(currentColor),
+            currentColor
         );
     }
 
