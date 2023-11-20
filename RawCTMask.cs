@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
 
 namespace rt;
@@ -180,7 +181,7 @@ public class RawCtMask : Geometry
             assigned_ts++;
         }
 
-        if (assigned_ts < 2) // daca camera este in interiorul matricii ? - probabil unul dintre t-uri va fi negativ
+        if (assigned_ts < 2)
         {
             return Intersection.NONE;
         }
@@ -190,10 +191,10 @@ public class RawCtMask : Geometry
             (t1, t2) = (t2, t1);
         }
 
-        Vector t1Pos = line.CoordinateToPosition(t1);
-        Vector t2Pos = line.CoordinateToPosition(t2);
-        int nSamples = 100;
-        double sampleStep = (t2Pos - t1Pos).Length() / nSamples;
+        // int nSamples = 100;
+        // double sampleStep = (t2Pos - t1Pos).Length() / nSamples;
+        
+        double sampleStep = _scale;
         
         double firstT = t1;
         double lastT = t2;
@@ -222,8 +223,6 @@ public class RawCtMask : Geometry
                                         sampleColor.Green * sampleAlpha,
                                         sampleColor.Blue * sampleAlpha,
                                         sampleAlpha);
-
-            currentColor.Alpha = currentColor.Alpha-1<0.00001?currentColor.Alpha:1;
         }
 
         if(currentColor.Alpha < 0.00001){
