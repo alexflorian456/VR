@@ -44,10 +44,8 @@ namespace rt
                 
                 new RawCtMask("../../walnut.dat", "../../walnut.raw", new Vector(-5.0, -20.0, 105.0), 0.2,
                     new ColorMap()
-                        // .Add(1, 1, new Color(0.7, 0.0, 0.0, 0.05))
-                        // .Add(2, 2, new Color(0.0, 0.7, 0.0, 1.0))
-                        .Add(1, 1, new Color(0.4667, 0.247, 0.1019, 0.05))
-                        .Add(2, 2, new Color(1.0, 0.8941, 0.8039, 1.0))
+                        .Add(1, 1, new Color(0.7, 0.0, 0.0, 0.05))
+                        .Add(2, 2, new Color(0.0, 0.7, 0.0, 1.0))
                 ),  
             };
 
